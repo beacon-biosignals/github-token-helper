@@ -60,11 +60,7 @@ while read -r line; do
 done < /dev/stdin
 
 if [ "$1" == "get" ] && [ "$is_match" == true ]; then
-    echo "protocol=${protocol}"
-    echo "host=${host}"
-    echo "username=${username}"
-
-    # Read password information at that last second to avoid loading into memory
+    # Read password information at the last second to avoid loading into memory
     # when we don't need it.
     if [ -n "$token_var" ]; then
         password="${!token_var}"
@@ -72,5 +68,10 @@ if [ "$1" == "get" ] && [ "$is_match" == true ]; then
         password="$(cat $token_file)"
     fi
 
-    echo "password=${password}"
+    if [ -n "$password" ]; then
+        echo "protocol=${protocol}"
+        echo "host=${host}"
+        echo "username=${username}"
+        echo "password=${password}"
+    fi
 fi
