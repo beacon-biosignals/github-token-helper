@@ -1,0 +1,76 @@
+#!/bin/bash
+
+# A Git credential helper which assists with handling GitHub authentication using
+# Personal Access Tokens (PAT). For more details see:
+# https://github.com/beacon-biosignals/gitlab-token-helper
+
+protocol=https
+host=github.com  # Only the hostname, no path
+username=git
+
+args=()
+while [[ $# -gt 0 ]]; do
+  flag="$1"
+
+  case $flag in
+    -f|--file)
+      token_file="$2"
+      shift # remove flag
+      shift # remove value
+      ;;
+    -e|--env)
+      token_var="$2"
+      shift # remove flag
+      shift # remove value
+      ;;
+    *)
+      args+=("$1")
+      shift # remove argument
+      ;;
+  esac
+done
+
+set -- "${args[@]}"  # restore unhandled parameters
+
+if [ -z "$token_file" ] && [ -z "$token_var" ]; then
+    echo "Either --env/--file must be specified" >&2
+    exit 1
+elif [ -n "$token_file" ] && [ ! -f "$token_file" ]; then
+    echo "Specified GitHub token file does not exist: $token_file" >&2
+    exit 1
+fi
+
+is_match=true
+IFS='='
+while read -r line; do
+    [ "$line" == "" ] && break
+
+    if [ "$is_match" == true ]; then
+        read -r k v <<<"$line"
+        if [ "$k" == "protocol" ] && [ "$v" != "$protocol" ]; then
+            is_match=false
+        elif [ "$k" == "host" ] && [ "$v" != "$host" ]; then
+            is_match=false
+        elif [ "$k" == "username" ]; then
+            username="$v"
+        elif [ "$k" == "password" ]; then
+            is_match=false
+        fi
+    fi
+done < /dev/stdin
+
+if [ "$1" == "get" ] && [ "$is_match" == true ]; then
+    echo "protocol=${protocol}"
+    echo "host=${host}"
+    echo "username=${username}"
+
+    # Read password information at that last second to avoid loading into memory
+    # when we don't need it.
+    if [ -n "$token_var" ]; then
+        password="${!token_var}"
+    else
+        password="$(cat $token_file)"
+    fi
+
+    echo "password=${password}"
+fi
