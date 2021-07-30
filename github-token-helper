@@ -35,7 +35,7 @@ set -- "${args[@]}"  # restore unhandled parameters
 if [ -z "$token_file" ] && [ -z "$token_var" ]; then
     echo "Either --env/--file must be specified" >&2
     exit 1
-elif [ -n "$token_file" ] && [ ! -f "$token_file" ]; then
+elif [ -n "$token_file" ] && [ -z "$token_var" ] && [ ! -f "$token_file" ]; then
     echo "Specified GitHub token file does not exist: $token_file" >&2
     exit 1
 fi
@@ -62,9 +62,14 @@ done < /dev/stdin
 if [ "$1" == "get" ] && [ "$is_match" == true ]; then
     # Read password information at the last second to avoid loading into memory
     # when we don't need it.
+
+    # Prefer using the contents of `token_var` if it is set
     if [ -n "$token_var" ]; then
         password="${!token_var}"
-    else
+    fi
+
+    # Use the token file if it exists
+    if [ -z "$password" ] && [ -f "$token_file" ]; then
         password="$(cat $token_file)"
     fi
 
