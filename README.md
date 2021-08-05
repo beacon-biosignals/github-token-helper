@@ -38,7 +38,7 @@ A solution to this problem is to only use the secret within the `RUN` instructio
 
 ```Dockerfile
 # Install github-token-helper
-RUN curl -L https://raw.githubusercontent.com/beacon-biosignals/github-token-helper/v0.1.1/github-token-helper -o $HOME/.github-token-helper && \
+RUN curl -sSL https://raw.githubusercontent.com/beacon-biosignals/github-token-helper/v0.1.1/github-token-helper -o $HOME/.github-token-helper && \
     chmod +x $HOME/.github-token-helper && \
     git config --global credential.https://github.com.helper "$HOME/.github-token-helper -f /run/secrets/github_token"
 
@@ -52,7 +52,7 @@ RUN --mount=type=secret,id=github_token \
 The basic installation requires the script to present on your system and registered as a [custom helper](https://git-scm.com/docs/gitcredentials#_custom_helpers):
 
 ```bash
-curl -L https://raw.githubusercontent.com/beacon-biosignals/github-token-helper/v0.1.1/github-token-helper -o $HOME/.github-token-helper
+curl -sSL https://raw.githubusercontent.com/beacon-biosignals/github-token-helper/v0.1.1/github-token-helper -o $HOME/.github-token-helper
 chmod +x $HOME/github-token-helper
 git config --global credential.https://github.com.helper "$HOME/github-token-helper -f /run/secrets/github_token -e GITHUB_TOKEN"
 ```
