@@ -15,7 +15,7 @@ RUN git clone https://github.com/MyOrg/PrivateRepo.git
 RUN git config --global --remove-section url."https://${GITHUB_TOKEN}:@github.com/"
 ```
 
-The above works but using `--build-arg` to pass in the secret is bad as this information is embedded in the image and is easily visible by using ``docker history <image>`.
+The above works but using `--build-arg` to pass in the secret is bad as this information is embedded in the image and is easily visible by using `docker history <image>`.
 
 A better approach is to use [`docker build --secret`](https://docs.docker.com/develop/develop-images/build_enhancements/#new-docker-build-secret-information) which can be secure if used correctly. Take the following example:
 
@@ -24,8 +24,7 @@ RUN --mount=type=secret,id=github_token \
     git config --global url."https://$(cat /run/secrets/github_token):@github.com/".insteadOf "https://github.com/"
 
 # Private repo
-RUN --mount=type=secret,id=github_token \
-    git clone https://github.com/MyOrg/PrivateRepo.git
+RUN git clone https://github.com/MyOrg/PrivateRepo.git
 
 # Prevent leaking `GITHUB_TOKEN` into the container's runtime environment.
 RUN --mount=type=secret,id=github_token \
@@ -34,7 +33,7 @@ RUN --mount=type=secret,id=github_token \
 
 The secret information should no longer be leaked via the image history but since Docker uses layer caching the secret is still available in some of the image's layers.
 
-A solution to this problem is to only use the secret within the `RUN` instruction for which it is needed. We could call `git config` use it and then unset the value all in the same instruction. Doing this however will either generate one giant `RUN` instruction, require us to duplicate logic, or refactor the logic into a re-usable script. One variation on the re-usable script would be to make use of a [custom git credential helper](https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage#_a_custom_credential_cache) which can add the secret in when the secret is mounted but avoid embedding the secret in any layer. For example:
+A solution to this problem is to only use the secret within the `RUN` instruction for which it is needed. We could call `git config` use it and then unset the value all in the same instruction. However, if we need to use the secret over multiple `RUN` instructions we will need to either duplicate the logic or refactor the logic into a re-usable script. One variation on the re-usable script would be to make use of a [custom git credential helper](https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage#_a_custom_credential_cache) which can make use of the secret in when the secret is mounted but avoid embedding the secret in any layer. For example:
 
 ```Dockerfile
 # Install github-token-helper
