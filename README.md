@@ -52,8 +52,8 @@ The basic installation requires the script to present on your system and registe
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/beacon-biosignals/github-token-helper/v0.1.1/github-token-helper -o $HOME/.github-token-helper
-chmod +x $HOME/github-token-helper
-git config --global credential.https://github.com.helper "$HOME/github-token-helper -f /run/secrets/github_token -e GITHUB_TOKEN"
+chmod +x $HOME/.github-token-helper
+git config --global credential.https://github.com.helper "$HOME/.github-token-helper -f /run/secrets/github_token -e GITHUB_TOKEN"
 ```
 
 ## Configuration
