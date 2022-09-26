@@ -9,17 +9,19 @@ host=github.com  # Only the hostname, no path
 username=git
 
 args=()
+token_files=()
+token_vars=()
 while [[ $# -gt 0 ]]; do
   flag="$1"
 
   case $flag in
     -f|--file)
-      token_file="$2"
+      token_files+=("$2")
       shift # remove flag
       shift # remove value
       ;;
     -e|--env)
-      token_var="$2"
+      token_vars+=("$2")
       shift # remove flag
       shift # remove value
       ;;
@@ -32,11 +34,8 @@ done
 
 set -- "${args[@]}"  # restore unhandled parameters
 
-if [ -z "$token_file" ] && [ -z "$token_var" ]; then
+if [ "${#token_files[@]}" -eq 0 ] && [ "${#token_vars[@]}" -eq 0 ]; then
     echo "Either --env/--file must be specified" >&2
-    exit 1
-elif [ -n "$token_file" ] && [ -z "$token_var" ] && [ ! -f "$token_file" ]; then
-    echo "Specified GitHub token file does not exist: $token_file" >&2
     exit 1
 fi
 
@@ -63,14 +62,20 @@ if [ "$1" == "get" ] && [ "$is_match" == true ]; then
     # Read password information at the last second to avoid loading into memory
     # when we don't need it.
 
-    # Prefer using the contents of `token_var` if it is set
-    if [ -n "$token_var" ]; then
+    # Prefer using the contents of a `token_var` if one is set
+    for token_var in "${token_vars[@]}"; do
         password="${!token_var}"
-    fi
+        [ -n "$password" ] && break
+    done
 
-    # Use the token file if it exists
-    if [ -z "$password" ] && [ -f "$token_file" ]; then
-        password="$(cat $token_file)"
+    # Fallback on using the first token file that exists
+    if [ -z "$password" ]; then
+        for token_file in "${token_files[@]}"; do
+            if [ -f "$token_file" ]; then
+                password="$(cat $token_file)"
+                break
+            fi
+        done
     fi
 
     if [ -n "$password" ]; then
@@ -78,5 +83,8 @@ if [ "$1" == "get" ] && [ "$is_match" == true ]; then
         echo "host=${host}"
         echo "username=${username}"
         echo "password=${password}"
+    else
+        echo "Specified GitHub token(s) could not be found" >&2
+        exit 1
     fi
 fi
