@@ -60,8 +60,8 @@ git config --global credential.https://github.com.helper "$HOME/.github-token-he
 
 The `github-token-helper` accepts the following options:
 
-- `--file` / `-f`: Specify a file containing the PAT. Used with `docker build --secret`.
-- `--env` / `-e`: The name of an environmental variable which contains the PAT to use. Should not be used with Docker's `--build-arg` to avoid credential leaking but can be useful for running the container interactively.
+- `--file` / `-f`: Specify the file(s) containing the PAT. Used with `docker build --secret`.
+- `--env` / `-e`: The name of the environmental variable(s) which contains the PAT to use. Should not be used with Docker's `--build-arg` to avoid credential leaking but can be useful for running the container interactively.
 
 ## Testing
 
