@@ -37,9 +37,9 @@ A solution to this problem is to only use the secret within the `RUN` instructio
 
 ```Dockerfile
 # Install github-token-helper
-RUN curl -sSL https://raw.githubusercontent.com/beacon-biosignals/github-token-helper/v0.1.1/github-token-helper -o $HOME/.github-token-helper && \
-    chmod +x $HOME/.github-token-helper && \
-    git config --global credential.https://github.com.helper "$HOME/.github-token-helper -f /run/secrets/github_token"
+RUN curl -fsSLO https://raw.githubusercontent.com/beacon-biosignals/github-token-helper/v0.1.2/github-token-helper && \
+    install github-token-helper /usr/local/bin && \
+    git config --system credential.https://github.com.helper "/usr/local/bin/github-token-helper -f /run/secrets/github-token"
 
 # Private repo
 RUN --mount=type=secret,id=github_token \
@@ -48,12 +48,12 @@ RUN --mount=type=secret,id=github_token \
 
 ## Installation
 
-The basic installation requires the script to present on your system and registered as a [custom helper](https://git-scm.com/docs/gitcredentials#_custom_helpers):
+The basic installation requires the script to present on your system and registered as a [custom helper](https://git-scm.com/docs/gitcredentials#_custom_helpers). To install `github-token-helper` on your local system you can run:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/beacon-biosignals/github-token-helper/v0.1.1/github-token-helper -o $HOME/.github-token-helper
-chmod +x $HOME/.github-token-helper
-git config --global credential.https://github.com.helper "$HOME/.github-token-helper -f /run/secrets/github_token -e GITHUB_TOKEN"
+curl -fsSLO https://raw.githubusercontent.com/beacon-biosignals/github-token-helper/v0.1.2/github-token-helper
+install github-token-helper $HOME
+git config --global credential.https://github.com.helper "$HOME/github-token-helper -f /run/secrets/github_token -e GITHUB_TOKEN"
 ```
 
 ## Configuration
